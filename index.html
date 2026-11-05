@@ -42,17 +42,17 @@ header.top .in{max-width:760px;margin:0 auto;padding-left:max(16px,env(safe-area
 .brand h1{font-family:var(--f-display);font-weight:800;font-size:22px;margin:0;letter-spacing:-.01em}
 .brand h1 span{color:var(--sambal)}
 .brand .sync{font-size:12px;color:var(--muted)}
-nav.tabs{display:flex;gap:18px;margin-top:10px;overflow-x:auto;scrollbar-width:none}
+nav.tabs{display:flex;flex-direction:column;margin-top:8px}
 nav.tabs::-webkit-scrollbar{display:none}
-.grp{display:flex;align-items:stretch;gap:2px;flex:none}
-.grp+.grp{padding-left:18px;border-left:1px solid var(--line)}
-.gl{align-self:center;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-right:6px;writing-mode:horizontal-tb}
+.grp{display:flex;flex-wrap:wrap;align-items:stretch;gap:2px;min-width:0;position:relative;padding-left:58px}
+.grp+.grp{border-top:1px solid var(--line)}
+.gl{align-self:center;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;writing-mode:horizontal-tb;position:absolute;left:0;top:15px}
 nav.tabs a{display:flex;align-items:center;gap:7px;padding:10px 10px 11px;border-bottom:3px solid transparent;color:var(--muted);text-decoration:none;font-weight:600;white-space:nowrap;font-size:14px}
 nav.tabs a svg{width:17px;height:17px;flex:none}
 nav.tabs a:hover{color:var(--fg)}
 nav.tabs a[aria-current="page"]{color:var(--pandan);border-color:var(--pandan)}
 .badge{min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--sambal);color:#fff;font-size:11px;font-family:var(--f-mono);display:inline-flex;align-items:center;justify-content:center}
-@media (max-width:520px){.gl{display:none}nav.tabs{gap:10px}.grp+.grp{padding-left:10px}nav.tabs a{padding-inline:8px}}
+@media (max-width:520px){.gl{display:none}.grp{padding-left:0}header.top{position:static}nav.tabs a{padding:9px 7px 10px;font-size:13.5px}nav.tabs a svg{display:none}}
 h2{font-family:var(--f-display);font-weight:800;font-size:20px;margin:22px 0 4px;text-wrap:balance}
 h3{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:20px 0 6px;font-weight:600}
 .sub{color:var(--muted);margin:0 0 12px;font-size:14px}
