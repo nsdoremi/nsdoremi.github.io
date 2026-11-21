@@ -296,10 +296,16 @@ function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeou
 async function copy(text){try{await navigator.clipboard.writeText(text);toast('Disalin — tampal dalam WhatsApp')}catch(e){toast('Tekan lama pada teks untuk salin')}}
 
 /* ---------- PO text ---------- */
+const HARI_PO=['Ahad','Isnin','Selasa','Rabu','Khamis','Jumaat','Sabtu'];
 function poText(p){
-  const L=p.lines.map((l,i)=>`${i+1}. ${l.name} — ${l.qty} ${l.unit}`).join('\n');
-  return `*${p.no}* — Nasi Lemak DoReMi\nTarikh PO: ${dmy(p.date)}\nUntuk: ${dmy(p.forDate)}\n\n${L}${p.note?'\n\nNota: '+p.note:''}\n\nJumlah item: ${p.lines.length}`;
+  const order=[...new Set(catalog.map(i=>i.cat))],by={};
+  p.lines.forEach(l=>{const c=(catalog.find(i=>i.id===l.id)||{}).cat||'Lain-lain';(by[c]=by[c]||[]).push(l)});
+  const cats=Object.keys(by).sort((a,b)=>((order.indexOf(a)+1)||99)-((order.indexOf(b)+1)||99));
+  const body=cats.map(c=>`*${c.toUpperCase()}*\n`+by[c].map(l=>`• ${l.name} — *${l.qty} ${l.unit}*`).join('\n')).join('\n\n');
+  const d=p.forDate?new Date(p.forDate+'T00:00:00'):null;
+  return `*${p.no}*\n*Nasi Lemak DoReMi*\nUntuk: *${d?HARI_PO[d.getDay()]+' ':''}${dmy(p.forDate)}*\n━━━━━━━━━━━━\n\n${body}\n\n━━━━━━━━━━━━${p.note?'\nNota: '+p.note:''}\nJumlah: ${p.lines.length} item\nTerima kasih 🙏`;
 }
+function ckWa(text){const ck=suppliers.find(x=>supCat(x)==='Central Kitchen'&&x.phone);let n=ck?ck.phone.replace(/\D/g,''):'';if(n.startsWith('0'))n='6'+n;return `https://wa.me/${n}?text=${encodeURIComponent(text)}`}
 
 /* ---------- views ---------- */
 function render(){
@@ -315,7 +321,7 @@ function render(){
 function vPO(){
   const ck=catalog.filter(i=>(i.src||'ck')==='ck');const picked=ck.filter(i=>Number(qty[i.id])>0);
   let h=`<h2>PO ke Central Kitchen</h2><p class="sub">Untuk item dari Central Kitchen sahaja. Barang lain direkod di tab <a href="#resit">Resit &amp; Invois</a>.</p>`;
-  if(lastPO){h+=`<div class="panel" style="padding:12px;margin-bottom:14px;border-color:var(--pandan)"><b>${esc(lastPO.no)} dijana.</b> Salin dan hantar ke Central Kitchen.<pre class="po">${esc(poText(lastPO))}</pre><div class="actions"><button class="btn pri" data-a="copyLast">Salin teks PO</button><a class="btn" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(poText(lastPO))}">Buka WhatsApp</a><button class="btn" data-a="closeLast">Tutup</button></div></div>`}
+  if(lastPO){h+=`<div class="panel" style="padding:12px;margin-bottom:14px;border-color:var(--pandan)"><b>${esc(lastPO.no)} dijana.</b> Salin dan hantar ke Central Kitchen.<pre class="po">${esc(poText(lastPO))}</pre><div class="actions"><button class="btn pri" data-a="copyLast">Salin teks PO</button><a class="btn" target="_blank" rel="noopener" href="${ckWa(poText(lastPO))}">Hantar WhatsApp ke CK</a><button class="btn" data-a="closeLast">Tutup</button></div></div>`}
   h+=`<div class="grid" style="margin-bottom:12px"><label class="f">Untuk tarikh<input type="date" id="poFor" value="${poFor}"></label><label class="f" style="grid-column:span 2">Nota (pilihan)<input id="poNote" value="${esc(poNote)}" placeholder="cth: hantar sebelum 6 pagi"></label></div>`;
   if(!catalog.length){h+=`<div class="panel empty">Belum ada item. Tambah di tab <a href="#senarai">Senarai Item</a>.</div>`}
   CATS.forEach((c,ci)=>{const its=ck.filter(i=>(i.cat||'Lain-lain')===c);if(!its.length&&!isAdmin)return;
@@ -396,7 +402,7 @@ function cardPO(p){
   const st={draft:['draft','Belum hantar'],sent:['sent','Dihantar'],done:['done','Diterima']}[p.status||'sent'];
   const open=openPO===p._id;
   let h=`<div class="card"><div class="head" data-a="toggle" data-id="${p._id}"><span><b>${esc(p.no)}</b> · untuk ${dmy(p.forDate)}${p.by?` <span style="color:var(--muted);font-size:13px">· ${esc(who(p.by))}</span>`:''}</span><span><span class="num" style="color:var(--muted);font-size:13px">${p.lines.length} item</span> <span class="pill ${st[0]}">${st[1]}</span> ${isAdmin?(paidOf(p._id)?`<span class="pill sent">Dibayar</span>`:`<span class="pill" style="background:var(--sambal-soft);color:var(--sambal)">Belum bayar</span>`):''}</span></div>`;
-  if(open){h+=`<ul class="lines">${p.lines.map(l=>`<li><span>${esc(l.name)}</span><span class="num">${l.qty} ${esc(l.unit)}</span></li>`).join('')}</ul>${p.note?`<p class="sub" style="margin-top:8px">Nota: ${esc(p.note)}</p>`:''}<div class="actions"><button class="btn sm" data-a="copyPO" data-id="${p._id}">Salin teks</button><button class="btn sm" data-a="repeat" data-id="${p._id}">Ulang PO ni</button>${p.status!=='done'?`<button class="btn sm pri" data-a="received" data-id="${p._id}">Tanda diterima</button>`:''}${confirmDel===p._id?`<button class="btn sm warn" data-a="delPO" data-id="${p._id}">Sah padam?</button>`:`<button class="btn sm warn" data-a="askDel" data-id="${p._id}">Padam</button>`}</div>`}
+  if(open){h+=`<ul class="lines">${p.lines.map(l=>`<li><span>${esc(l.name)}</span><span class="num">${l.qty} ${esc(l.unit)}</span></li>`).join('')}</ul>${p.note?`<p class="sub" style="margin-top:8px">Nota: ${esc(p.note)}</p>`:''}<div class="actions"><button class="btn sm" data-a="copyPO" data-id="${p._id}">Salin teks</button><a class="btn sm" target="_blank" rel="noopener" href="${ckWa(poText(p))}">WhatsApp CK</a><button class="btn sm" data-a="repeat" data-id="${p._id}">Ulang PO ni</button>${p.status!=='done'?`<button class="btn sm pri" data-a="received" data-id="${p._id}">Tanda diterima</button>`:''}${confirmDel===p._id?`<button class="btn sm warn" data-a="delPO" data-id="${p._id}">Sah padam?</button>`:`<button class="btn sm warn" data-a="askDel" data-id="${p._id}">Padam</button>`}</div>`}
     return h+`</div>`;
 }
 
