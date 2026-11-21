@@ -68,7 +68,7 @@ h3{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute
 .step input{width:48px;height:36px;border:0;border-inline:1px solid var(--line);text-align:center;background:transparent;color:var(--fg);font-family:var(--f-mono);font-size:15px}
 input,select,textarea{font:inherit;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 10px;min-width:0}
 textarea{width:100%;resize:vertical}
-label.f{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);font-weight:500;min-width:0}
+label.f,div.f{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);font-weight:500;min-width:0}
 .grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
 .btn{border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:9px 14px;border-radius:8px;font-weight:600;cursor:pointer;font:inherit;font-weight:600}
 .btn.pri{background:var(--pandan);border-color:var(--pandan);color:#fff}
@@ -408,10 +408,10 @@ function vResit(){
   const pending=resits.filter(r=>!r.checked).length;
   let h=`<h2>Resit &amp; invois</h2><p class="sub">Setiap kali bayar kedai atau supplier (gas, ayam, barang mentah): ambil gambar resit, pilih supplier, isi jumlah.</p>
   <div class="panel" style="padding:12px"><div class="grid">
-   <label class="f" style="grid-column:1/-1">Gambar resit
+   <div class="f" style="grid-column:1/-1">Gambar resit
      ${rPreview?`<img src="${rPreview}" alt="Pratonton resit" style="max-height:220px;width:auto;border-radius:8px;border:1px solid var(--line);margin:4px 0">`:''}
-     ${assets?`<input type="file" id="rFile" accept="image/*" capture="environment">`:`<span style="color:var(--amber)">Muat naik gambar tak tersedia untuk akaun ini. Isi butiran dan simpan resit asal.</span>`}
-   </label>
+     ${assets?`<span style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px"><label class="btn sm pri" style="cursor:pointer">Ambil gambar<input type="file" id="rFile" accept="image/*" capture="environment" hidden></label><label class="btn sm" style="cursor:pointer">Pilih dari galeri / fail<input type="file" id="rFile2" accept="image/*" hidden></label>${rFile?`<span style="align-self:center;font-size:13px;color:var(--muted)">${esc(rFile.name||'gambar')}</span>`:''}</span>`:`<span style="color:var(--amber)">Muat naik gambar tak tersedia untuk akaun ini. Isi butiran dan simpan resit asal.</span>`}
+   </div>
    <label class="f">Tarikh<input type="date" id="rDate" value="${rDate}"></label>
    <label class="f">Kedai / supplier<input id="rSup" list="dlSup" placeholder="cth: Pasar Chow Kit"></label>
    <label class="f">Jumlah resit (RM)<input id="rTot" inputmode="decimal" placeholder="0.00"></label>
@@ -677,7 +677,7 @@ document.addEventListener('change',e=>{
   if(t.dataset.ck){ckSel[t.dataset.ck]=t.checked;render();return}
   if(t.dataset.sp){supSel[t.dataset.sp]=t.checked;render();return}
   if(t.id==='rDate'){rDate=t.value||ymd(new Date());render()}
-  if(t.id==='rFile'){rFile=t.files[0]||null;if(rPreview)URL.revokeObjectURL(rPreview);rPreview=rFile?URL.createObjectURL(rFile):'';const keep=['rSup','rTot','rItems','rPay'].map(k=>[k,document.getElementById(k)?.value]);render();keep.forEach(([k,v])=>{const el=document.getElementById(k);if(el&&v)el.value=v})}
+  if(t.id==='rFile'||t.id==='rFile2'){rFile=t.files[0]||null;if(rPreview)URL.revokeObjectURL(rPreview);rPreview=rFile?URL.createObjectURL(rFile):'';const keep=['rSup','rTot','rItems','rPay'].map(k=>[k,document.getElementById(k)?.value]);render();keep.forEach(([k,v])=>{const el=document.getElementById(k);if(el&&v)el.value=v})}
   if(t.dataset.e&&editCat){editCat[+t.dataset.ix][t.dataset.e]=t.value}
   if(t.dataset.ew==='active'&&editW){editW[+t.dataset.ix].active=t.checked}
 });
@@ -750,7 +750,7 @@ document.addEventListener('click',async e=>{
   if(a==='addResit'){
     const tot=$('#rTot').value.replace(',','.').replace(/^rm\s*/i,'');const sup=$('#rSup').value.trim();
     if(tot===''||!(+tot>=0)){toast('Isi jumlah resit');$('#rTot').focus();return}
-    if(assets&&!rFile){toast('Ambil gambar resit dulu');return}
+    if(assets&&!rFile){toast('Ambil atau pilih gambar resit dulu');return}
     if($('#rPay').value==='kredit'&&!sup){toast('Isi nama supplier untuk hutang');$('#rSup').focus();return}
     b.disabled=true;b.textContent='Menyimpan…';
     try{let receipt=null;if(rFile&&assets){const up=await assets.upload(await shrink(rFile));receipt=up.id}
